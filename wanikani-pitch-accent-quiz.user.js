@@ -2,7 +2,7 @@
 // @name          WaniKani Pitch Accent Quiz
 // @namespace     https://www.wanikani.com
 // @description   Quiz pitch accent in lessons and reviews. Insert ' at the downstep in your answers.
-// @version       0.0.1
+// @version       0.0.2
 // @author        Lynn
 // @include       *://www.wanikani.com/lesson/session*
 // @include       *://www.wanikani.com/review/session*
@@ -31,8 +31,9 @@
 
     function answerHandler(e) {
         e.preventDefault();
-        const currentItem = $.jStorage.get("currentItem");
-        const questionType = $.jStorage.get("questionType");
+        const isLesson = $("#lessons").length > 0;
+        const currentItem = $.jStorage.get(isLesson ? "l/currentQuizItem" : "currentItem");
+        const questionType = $.jStorage.get(isLesson ? "l/questionType" : "questionType");
 
         // Only act when this is an unanswered vocab reading prompt.
         const answered = $("#answer-form fieldset").hasClass("correct") || $("#answer-form fieldset").hasClass("incorrect");
@@ -44,13 +45,13 @@
         if (i < 0) { say("Place an apostrophe (') at the pitch accent downstep. Put it at the front for heiban words."); return; }
         const a = (userResponse.slice(0, i).match(/[^ゃゅょぁぃぅぇぉ]/g) || []).length;
         if (a === 0 && i > 0) { say("There are stray small kana before the downstep marker."); return; }
-        if ((userResponse[i + 1] || '').match(/[ゃゅょぁぃぅぇぉ]/)) { say(i === 0 ? "A reading can't start with a small kana." : "The downstep marker can't split a mora (" + userResponse[i - 1] + userResponse[i + 1] + ")."); return; }
+        if ((userResponse[i + 1] || "").match(/[ゃゅょぁぃぅぇぉ]/)) { say(i === 0 ? "A reading can't start with a small kana." : "The downstep marker can't split a mora (" + userResponse[i - 1] + userResponse[i + 1] + ")."); return; }
 
         // If they got the word right, but the accent wrong, notify them.
-        const cleanResponse = userResponse.replace(/'/g, '');
+        const cleanResponse = userResponse.replace(/'/g, "");
         const accents = vocabTable[currentItem.voc];
         if (currentItem.kana.includes(cleanResponse) && accents && accents[0] !== -1 && !accents.includes(a)) {
-            $("#user-response").effect('highlight', {color: 'tomato'});
+            $("#user-response").effect("highlight", {color: "tomato"});
             say("The proper pitch accent is " + accents.map(i => demonstrateAccent(cleanResponse, i)).join(" or ") + ".");
             return;
         }
